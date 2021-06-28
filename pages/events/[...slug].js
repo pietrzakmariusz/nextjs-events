@@ -1,6 +1,7 @@
 // dla więcej niż jednego segmentu: /events/xxx/yyy...
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 import useSWR from 'swr';
 
 import { getFilteredEvents } from '../../helpers/ApiUtilities';
@@ -16,7 +17,6 @@ function FilteredEventsPage(props) {
 	const filterData = router.query.slug;
 
 	const { data, error } = useSWR(process.env.NEXT_PUBLIC_API_BASE);
-	console.log(process.env.API_BASE);
 
 	useEffect(() => {
 		if (data) {
@@ -32,8 +32,20 @@ function FilteredEventsPage(props) {
 		}
 	}, [data]);
 
+	let pageHeadData = (
+		<Head>
+			<title>Znalezione wydarzenia</title>
+			<meta name='description' content={`Lista znalezionych wydarzeń`} />
+		</Head>
+	);
+
 	if (!loadedEvents) {
-		return <p className='center'>Wczytywanie...</p>;
+		return (
+			<>
+				{pageHeadData}
+				<p className='center'>Wczytywanie...</p>
+			</>
+		);
 	}
 
 	const filteredYear = filterData[0];
@@ -41,6 +53,16 @@ function FilteredEventsPage(props) {
 
 	const numYear = +filteredYear;
 	const numMonth = +filteredMonth;
+
+	pageHeadData = (
+		<Head>
+			<title>Znalezione wydarzenia</title>
+			<meta
+				name='description'
+				content={`Wszystkie wydarzenia dla ${numMonth}/${numYear}`}
+			/>
+		</Head>
+	);
 
 	if (
 		isNaN(numYear) ||
@@ -53,6 +75,7 @@ function FilteredEventsPage(props) {
 	) {
 		return (
 			<>
+				{pageHeadData}
 				<ErrorAlert>
 					<p>Nieprawidłowane dane do szukania.</p>
 				</ErrorAlert>
@@ -74,6 +97,7 @@ function FilteredEventsPage(props) {
 	if (!filteredEvents || filteredEvents.length === 0) {
 		return (
 			<>
+				{pageHeadData}
 				<ErrorAlert>
 					<p>Nie znaleziono wydarzeń dla podanego filtra danych.</p>
 				</ErrorAlert>
@@ -89,6 +113,7 @@ function FilteredEventsPage(props) {
 
 	return (
 		<>
+			{pageHeadData}
 			<ResultsTitle date={date} />
 			<EventsList items={filteredEvents} />
 		</>

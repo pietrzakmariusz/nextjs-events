@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 
 // import { getAllEvents } from '../../data';
 import { getAllEvents } from '../../helpers/ApiUtilities';
@@ -16,6 +17,13 @@ function AllEventsPage(props) {
 
 	return (
 		<>
+			<Head>
+				<title>Wszystkie wydarzenia</title>
+				<meta
+					name='description'
+					content='Znajdź dla siebie najlepsze wydarzenia programistyczne'
+				/>
+			</Head>
 			<EventsSearch onSearch={findEventsHandler} />
 			<EventsList items={events} />
 		</>
