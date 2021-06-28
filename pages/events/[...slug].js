@@ -1,28 +1,44 @@
 // dla więcej niż jednego segmentu: /events/xxx/yyy...
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import useSWR from 'swr';
 
-import { getFilteredEvents } from '../../data';
+import { getFilteredEvents } from '../../helpers/ApiUtilities';
 import EventsList from '../../components/events/EventsList';
 import ResultsTitle from '../../components/events/ResultsTitle';
 import Button from '../../components/ui/button';
 import ErrorAlert from '../../components/ui/ErrorAlert';
 
-function FilteredEventsPage() {
+function FilteredEventsPage(props) {
+	const [loadedEvents, setLoadedEvents] = useState();
 	const router = useRouter();
 
 	const filterData = router.query.slug;
 
-	// przy pierwszym wywołaniu, gdy url nie zawiera segmentów do szukania
-	// korzystanie z globalnego stylu .center
+	const { data, error } = useSWR(process.env.NEXT_PUBLIC_API_BASE);
+	console.log(process.env.API_BASE);
 
-	if (!filterData) {
+	useEffect(() => {
+		if (data) {
+			const events = [];
+
+			for (const key in data) {
+				events.push({
+					id: key,
+					...data[key],
+				});
+			}
+			setLoadedEvents(events);
+		}
+	}, [data]);
+
+	if (!loadedEvents) {
 		return <p className='center'>Wczytywanie...</p>;
 	}
 
 	const filteredYear = filterData[0];
 	const filteredMonth = filterData[1];
 
-	// konwersja string na number
 	const numYear = +filteredYear;
 	const numMonth = +filteredMonth;
 
@@ -32,7 +48,8 @@ function FilteredEventsPage() {
 		numYear > 2030 ||
 		numYear < 2021 ||
 		numMonth > 12 ||
-		numMonth < 1
+		numMonth < 1 ||
+		error
 	) {
 		return (
 			<>
@@ -46,9 +63,12 @@ function FilteredEventsPage() {
 		);
 	}
 
-	const filteredEvents = getFilteredEvents({
-		year: numYear,
-		month: numMonth,
+	const filteredEvents = loadedEvents.filter(event => {
+		const eventDate = new Date(event.date);
+		return (
+			eventDate.getFullYear() === numYear &&
+			eventDate.getMonth() === numMonth - 1
+		);
 	});
 
 	if (!filteredEvents || filteredEvents.length === 0) {
@@ -74,5 +94,50 @@ function FilteredEventsPage() {
 		</>
 	);
 }
+
+// export async function getServerSideProps(context) {
+// 	const { params } = context;
+
+// 	const filterData = params.slug;
+
+// 	const filteredYear = filterData[0];
+// 	const filteredMonth = filterData[1];
+
+// 	// konwersja string na number
+// 	const numYear = +filteredYear;
+// 	const numMonth = +filteredMonth;
+
+// 	if (
+// 		isNaN(numYear) ||
+// 		isNaN(numMonth) ||
+// 		numYear > 2030 ||
+// 		numYear < 2021 ||
+// 		numMonth > 12 ||
+// 		numMonth < 1
+// 	) {
+// 		return {
+// 			props: { hasError: true },
+// 			// notFound: true,
+// 			// redirect: {
+// 			// 	destrination: '/error',
+// 			// },
+// 		};
+// 	}
+
+// 	const filteredEvents = await getFilteredEvents({
+// 		year: numYear,
+// 		month: numMonth,
+// 	});
+
+// 	return {
+// 		props: {
+// 			events: filteredEvents,
+// 			date: {
+// 				year: numYear,
+// 				month: numMonth,
+// 			},
+// 		},
+// 	};
+// }
 
 export default FilteredEventsPage;
