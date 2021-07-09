@@ -7,7 +7,7 @@ import useSWR from 'swr';
 import { getFilteredEvents } from '../../helpers/ApiUtilities';
 import EventsList from '../../components/events/EventsList';
 import ResultsTitle from '../../components/events/ResultsTitle';
-import Button from '../../components/ui/button';
+import Button from '../../components/ui/Button';
 import ErrorAlert from '../../components/ui/ErrorAlert';
 
 function FilteredEventsPage(props) {
